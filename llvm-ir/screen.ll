@@ -1,11 +1,15 @@
-; ModuleID = 'src/screen.c'
-source_filename = "src/screen.c"
+; ModuleID = 'src/sim.c'
+source_filename = "src/sim.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-pc-linux-gnu"
 
-%struct.ScreenMeta = type { ptr, ptr, ptr, ptr, i32, i32 }
+%struct.ScreenMeta = type { ptr, ptr, ptr, ptr, i32 }
+%union.SDL_Event = type { %struct.SDL_SensorEvent, [8 x i8] }
+%struct.SDL_SensorEvent = type { i32, i32, i32, [6 x float], i64 }
+%struct.SDL_WindowEvent = type { i32, i32, i32, i8, i8, i8, i8, i32, i32 }
 
 @.str = private unnamed_addr constant [7 x i8] c"INT RT\00", align 1
+@meta = dso_local global %struct.ScreenMeta zeroinitializer, align 8
 
 ; Function Attrs: noinline nounwind optnone sspstrong uwtable
 define dso_local i32 @ARGB(i8 noundef zeroext %0, i8 noundef zeroext %1, i8 noundef zeroext %2) #0 {
@@ -30,16 +34,16 @@ define dso_local i32 @ARGB(i8 noundef zeroext %0, i8 noundef zeroext %1, i8 noun
 }
 
 ; Function Attrs: noinline nounwind optnone sspstrong uwtable
-define dso_local void @make_screen(ptr noalias sret(%struct.ScreenMeta) align 8 %0) #0 {
-  %2 = call ptr @SDL_CreateWindow(ptr noundef @.str, i32 noundef 0, i32 noundef 0, i32 noundef 640, i32 noundef 480, i32 noundef 36)
-  %3 = getelementptr inbounds %struct.ScreenMeta, ptr %0, i32 0, i32 0
-  store ptr %2, ptr %3, align 8
-  %4 = getelementptr inbounds %struct.ScreenMeta, ptr %0, i32 0, i32 0
-  %5 = load ptr, ptr %4, align 8
-  %6 = call ptr @SDL_CreateRenderer(ptr noundef %5, i32 noundef -1, i32 noundef 0)
-  %7 = getelementptr inbounds %struct.ScreenMeta, ptr %0, i32 0, i32 1
-  store ptr %6, ptr %7, align 8
-  call void @update_screen(ptr noundef %0)
+define dso_local void @simInit() #0 {
+  %1 = call ptr @SDL_CreateWindow(ptr noundef @.str, i32 noundef 0, i32 noundef 0, i32 noundef 1024, i32 noundef 768, i32 noundef 4)
+  store ptr %1, ptr @meta, align 8
+  %2 = load ptr, ptr @meta, align 8
+  %3 = call ptr @SDL_CreateRenderer(ptr noundef %2, i32 noundef -1, i32 noundef 0)
+  store ptr %3, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 1), align 8
+  call void @simPrepareScreen()
+  %4 = load ptr, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 1), align 8
+  %5 = call ptr @SDL_CreateTexture(ptr noundef %4, i32 noundef 372645892, i32 noundef 1, i32 noundef 1024, i32 noundef 768)
+  store ptr %5, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 2), align 8
   ret void
 }
 
@@ -47,159 +51,142 @@ declare ptr @SDL_CreateWindow(ptr noundef, i32 noundef, i32 noundef, i32 noundef
 
 declare ptr @SDL_CreateRenderer(ptr noundef, i32 noundef, i32 noundef) #1
 
-; Function Attrs: noinline nounwind optnone sspstrong uwtable
-define dso_local void @update_screen(ptr noundef %0) #0 {
-  %2 = alloca ptr, align 8
-  %3 = alloca i32, align 4
-  %4 = alloca i32, align 4
-  store ptr %0, ptr %2, align 8
-  %5 = load ptr, ptr %2, align 8
-  %6 = getelementptr inbounds %struct.ScreenMeta, ptr %5, i32 0, i32 0
-  %7 = load ptr, ptr %6, align 8
-  call void @SDL_GetWindowSize(ptr noundef %7, ptr noundef %3, ptr noundef %4)
-  %8 = load ptr, ptr %2, align 8
-  %9 = getelementptr inbounds %struct.ScreenMeta, ptr %8, i32 0, i32 5
-  %10 = load i32, ptr %9, align 4
-  %11 = load i32, ptr %3, align 4
-  %12 = icmp ne i32 %10, %11
-  br i1 %12, label %19, label %13
-
-13:                                               ; preds = %1
-  %14 = load ptr, ptr %2, align 8
-  %15 = getelementptr inbounds %struct.ScreenMeta, ptr %14, i32 0, i32 4
-  %16 = load i32, ptr %15, align 8
-  %17 = load i32, ptr %4, align 4
-  %18 = icmp ne i32 %16, %17
-  br i1 %18, label %19, label %38
-
-19:                                               ; preds = %13, %1
-  %20 = load i32, ptr %3, align 4
-  %21 = load ptr, ptr %2, align 8
-  %22 = getelementptr inbounds %struct.ScreenMeta, ptr %21, i32 0, i32 5
-  store i32 %20, ptr %22, align 4
-  %23 = load i32, ptr %4, align 4
-  %24 = load ptr, ptr %2, align 8
-  %25 = getelementptr inbounds %struct.ScreenMeta, ptr %24, i32 0, i32 4
-  store i32 %23, ptr %25, align 8
-  %26 = load ptr, ptr %2, align 8
-  %27 = getelementptr inbounds %struct.ScreenMeta, ptr %26, i32 0, i32 1
-  %28 = load ptr, ptr %27, align 8
-  %29 = load ptr, ptr %2, align 8
-  %30 = getelementptr inbounds %struct.ScreenMeta, ptr %29, i32 0, i32 5
-  %31 = load i32, ptr %30, align 4
-  %32 = load ptr, ptr %2, align 8
-  %33 = getelementptr inbounds %struct.ScreenMeta, ptr %32, i32 0, i32 4
-  %34 = load i32, ptr %33, align 8
-  %35 = call ptr @SDL_CreateTexture(ptr noundef %28, i32 noundef 372645892, i32 noundef 1, i32 noundef %31, i32 noundef %34)
-  %36 = load ptr, ptr %2, align 8
-  %37 = getelementptr inbounds %struct.ScreenMeta, ptr %36, i32 0, i32 2
-  store ptr %35, ptr %37, align 8
-  br label %38
-
-38:                                               ; preds = %19, %13
-  ret void
-}
-
-declare void @SDL_GetWindowSize(ptr noundef, ptr noundef, ptr noundef) #1
-
 declare ptr @SDL_CreateTexture(ptr noundef, i32 noundef, i32 noundef, i32 noundef, i32 noundef) #1
 
 ; Function Attrs: noinline nounwind optnone sspstrong uwtable
-define dso_local void @lock_texture(ptr noundef %0) #0 {
-  %2 = alloca ptr, align 8
-  %3 = alloca i32, align 4
-  store ptr %0, ptr %2, align 8
-  %4 = load ptr, ptr %2, align 8
-  %5 = getelementptr inbounds %struct.ScreenMeta, ptr %4, i32 0, i32 2
-  %6 = load ptr, ptr %5, align 8
-  %7 = load ptr, ptr %2, align 8
-  %8 = getelementptr inbounds %struct.ScreenMeta, ptr %7, i32 0, i32 3
-  %9 = call i32 @SDL_LockTexture(ptr noundef %6, ptr noundef null, ptr noundef %8, ptr noundef %3)
+define dso_local void @simPrepareScreen() #0 {
+  %1 = alloca i32, align 4
+  %2 = load ptr, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 2), align 8
+  %3 = call i32 @SDL_LockTexture(ptr noundef %2, ptr noundef null, ptr noundef getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 3), ptr noundef %1)
   ret void
 }
 
 declare i32 @SDL_LockTexture(ptr noundef, ptr noundef, ptr noundef, ptr noundef) #1
 
 ; Function Attrs: noinline nounwind optnone sspstrong uwtable
-define dso_local void @unlock_texture(ptr noundef %0) #0 {
-  %2 = alloca ptr, align 8
-  store ptr %0, ptr %2, align 8
-  %3 = load ptr, ptr %2, align 8
-  %4 = getelementptr inbounds %struct.ScreenMeta, ptr %3, i32 0, i32 2
-  %5 = load ptr, ptr %4, align 8
-  call void @SDL_UnlockTexture(ptr noundef %5)
+define dso_local void @simSetPixel(i32 noundef %0, i32 noundef %1, i32 noundef %2) #0 {
+  %4 = alloca i32, align 4
+  %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
+  store i32 %0, ptr %4, align 4
+  store i32 %1, ptr %5, align 4
+  store i32 %2, ptr %6, align 4
+  %7 = load i32, ptr %6, align 4
+  %8 = load ptr, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 3), align 8
+  %9 = load i32, ptr %4, align 4
+  %10 = load i32, ptr %5, align 4
+  %11 = mul nsw i32 %10, 1024
+  %12 = add nsw i32 %9, %11
+  %13 = sext i32 %12 to i64
+  %14 = getelementptr inbounds i32, ptr %8, i64 %13
+  store i32 %7, ptr %14, align 4
   ret void
 }
+
+; Function Attrs: noinline nounwind optnone sspstrong uwtable
+define dso_local i32 @simCheckQuit() #0 {
+  %1 = alloca i32, align 4
+  %2 = alloca %union.SDL_Event, align 8
+  store i32 0, ptr %1, align 4
+  br label %3
+
+3:                                                ; preds = %18, %0
+  %4 = call i32 @SDL_PollEvent(ptr noundef %2)
+  %5 = icmp ne i32 %4, 0
+  br i1 %5, label %6, label %19
+
+6:                                                ; preds = %3
+  %7 = load i32, ptr %2, align 8
+  %8 = icmp eq i32 %7, 256
+  br i1 %8, label %17, label %9
+
+9:                                                ; preds = %6
+  %10 = load i32, ptr %2, align 8
+  %11 = icmp eq i32 %10, 512
+  br i1 %11, label %12, label %18
+
+12:                                               ; preds = %9
+  %13 = getelementptr inbounds %struct.SDL_WindowEvent, ptr %2, i32 0, i32 3
+  %14 = load i8, ptr %13, align 4
+  %15 = zext i8 %14 to i32
+  %16 = icmp eq i32 %15, 14
+  br i1 %16, label %17, label %18
+
+17:                                               ; preds = %12, %6
+  store i32 1, ptr %1, align 4
+  br label %18
+
+18:                                               ; preds = %17, %12, %9
+  br label %3, !llvm.loop !6
+
+19:                                               ; preds = %3
+  %20 = load i32, ptr %1, align 4
+  ret i32 %20
+}
+
+declare i32 @SDL_PollEvent(ptr noundef) #1
+
+; Function Attrs: noinline nounwind optnone sspstrong uwtable
+define dso_local void @simFlush() #0 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
+  %3 = call i32 @SDL_GetTicks()
+  store i32 %3, ptr %1, align 4
+  %4 = load i32, ptr %1, align 4
+  %5 = load i32, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 4), align 8
+  %6 = sub i32 %4, %5
+  store i32 %6, ptr %2, align 4
+  %7 = load i32, ptr %2, align 4
+  %8 = icmp ugt i32 %7, 16
+  br i1 %8, label %9, label %11
+
+9:                                                ; preds = %0
+  %10 = load i32, ptr %1, align 4
+  store i32 %10, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 4), align 8
+  br label %14
+
+11:                                               ; preds = %0
+  %12 = load i32, ptr %2, align 4
+  %13 = sub i32 16, %12
+  call void @SDL_Delay(i32 noundef %13)
+  br label %14
+
+14:                                               ; preds = %11, %9
+  %15 = load ptr, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 2), align 8
+  call void @SDL_UnlockTexture(ptr noundef %15)
+  %16 = load ptr, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 1), align 8
+  %17 = load ptr, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 2), align 8
+  %18 = call i32 @SDL_RenderCopy(ptr noundef %16, ptr noundef %17, ptr noundef null, ptr noundef null)
+  %19 = load ptr, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 1), align 8
+  call void @SDL_RenderPresent(ptr noundef %19)
+  ret void
+}
+
+declare i32 @SDL_GetTicks() #1
+
+declare void @SDL_Delay(i32 noundef) #1
 
 declare void @SDL_UnlockTexture(ptr noundef) #1
-
-; Function Attrs: noinline nounwind optnone sspstrong uwtable
-define dso_local void @put_pixel(ptr noundef %0, i32 noundef %1, i32 noundef %2, i32 noundef %3) #0 {
-  %5 = alloca ptr, align 8
-  %6 = alloca i32, align 4
-  %7 = alloca i32, align 4
-  %8 = alloca i32, align 4
-  store ptr %0, ptr %5, align 8
-  store i32 %1, ptr %6, align 4
-  store i32 %2, ptr %7, align 4
-  store i32 %3, ptr %8, align 4
-  %9 = load i32, ptr %8, align 4
-  %10 = load ptr, ptr %5, align 8
-  %11 = getelementptr inbounds %struct.ScreenMeta, ptr %10, i32 0, i32 3
-  %12 = load ptr, ptr %11, align 8
-  %13 = load i32, ptr %6, align 4
-  %14 = load i32, ptr %7, align 4
-  %15 = load ptr, ptr %5, align 8
-  %16 = getelementptr inbounds %struct.ScreenMeta, ptr %15, i32 0, i32 5
-  %17 = load i32, ptr %16, align 4
-  %18 = mul nsw i32 %14, %17
-  %19 = add nsw i32 %13, %18
-  %20 = sext i32 %19 to i64
-  %21 = getelementptr inbounds i32, ptr %12, i64 %20
-  store i32 %9, ptr %21, align 4
-  ret void
-}
-
-; Function Attrs: noinline nounwind optnone sspstrong uwtable
-define dso_local void @flush(ptr noundef %0) #0 {
-  %2 = alloca ptr, align 8
-  store ptr %0, ptr %2, align 8
-  %3 = load ptr, ptr %2, align 8
-  %4 = getelementptr inbounds %struct.ScreenMeta, ptr %3, i32 0, i32 1
-  %5 = load ptr, ptr %4, align 8
-  %6 = load ptr, ptr %2, align 8
-  %7 = getelementptr inbounds %struct.ScreenMeta, ptr %6, i32 0, i32 2
-  %8 = load ptr, ptr %7, align 8
-  %9 = call i32 @SDL_RenderCopy(ptr noundef %5, ptr noundef %8, ptr noundef null, ptr noundef null)
-  %10 = load ptr, ptr %2, align 8
-  %11 = getelementptr inbounds %struct.ScreenMeta, ptr %10, i32 0, i32 1
-  %12 = load ptr, ptr %11, align 8
-  call void @SDL_RenderPresent(ptr noundef %12)
-  ret void
-}
 
 declare i32 @SDL_RenderCopy(ptr noundef, ptr noundef, ptr noundef, ptr noundef) #1
 
 declare void @SDL_RenderPresent(ptr noundef) #1
 
 ; Function Attrs: noinline nounwind optnone sspstrong uwtable
-define dso_local void @destroy_screen(ptr noundef %0) #0 {
-  %2 = alloca ptr, align 8
-  store ptr %0, ptr %2, align 8
-  %3 = load ptr, ptr %2, align 8
-  %4 = getelementptr inbounds %struct.ScreenMeta, ptr %3, i32 0, i32 1
-  %5 = load ptr, ptr %4, align 8
-  call void @SDL_DestroyRenderer(ptr noundef %5)
-  %6 = load ptr, ptr %2, align 8
-  %7 = getelementptr inbounds %struct.ScreenMeta, ptr %6, i32 0, i32 0
-  %8 = load ptr, ptr %7, align 8
-  call void @SDL_DestroyWindow(ptr noundef %8)
+define dso_local void @simClose() #0 {
+  %1 = load ptr, ptr getelementptr inbounds (%struct.ScreenMeta, ptr @meta, i32 0, i32 1), align 8
+  call void @SDL_DestroyRenderer(ptr noundef %1)
+  %2 = load ptr, ptr @meta, align 8
+  call void @SDL_DestroyWindow(ptr noundef %2)
+  call void @SDL_Quit()
   ret void
 }
 
 declare void @SDL_DestroyRenderer(ptr noundef) #1
 
 declare void @SDL_DestroyWindow(ptr noundef) #1
+
+declare void @SDL_Quit() #1
 
 attributes #0 = { noinline nounwind optnone sspstrong uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
@@ -213,3 +200,5 @@ attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !3 = !{i32 7, !"uwtable", i32 2}
 !4 = !{i32 7, !"frame-pointer", i32 2}
 !5 = !{!"clang version 16.0.6"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
