@@ -11,9 +11,9 @@ debug:
 
 llvm-ir:
 	mkdir -p $(LLVMDIR)
-	clang -S -emit-llvm -o $(LLVMDIR)/main.ll src/main.c
-	clang -S -emit-llvm -o $(LLVMDIR)/raytrace.ll src/raytrace.c
-	clang -S -emit-llvm -o $(LLVMDIR)/screen.ll src/sim.c
+	clang -O2 -S -emit-llvm -o $(LLVMDIR)/main.ll src/main.c
+	clang -O2 -S -emit-llvm -o $(LLVMDIR)/raytrace.ll src/raytrace.c
+	clang -O2 -S -emit-llvm -o $(LLVMDIR)/screen.ll src/sim.c
 clean:
 	rm -rf $(BUILDDIR) $(LLVMDIR)
 

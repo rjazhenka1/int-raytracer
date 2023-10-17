@@ -1,11 +1,10 @@
 #include "raytrace.h"
 #include "sim.h"
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_timer.h>
-#include <limits.h>
-#include <stdlib.h>
 
 #define FACTOR 2048
+#define abs(x) (((x) >= 0) ? (x) : -(x))
+#define INT_MAX 2147483647
+#define INT_MIN -2147483648
 
 fixed f_mul(fixed a, fixed b) { return (a * (b / FACTOR)); }
 

@@ -5,4 +5,4 @@ struct vec3 {
   fixed x, y, z;
 };
 
-extern void app();
+void app();

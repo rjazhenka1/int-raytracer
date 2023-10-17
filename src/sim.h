@@ -4,11 +4,11 @@
 #define WIDTH 1024
 #define HEIGHT 768
 
-extern int ARGB(unsigned char red, unsigned char green, unsigned char blue);
+int ARGB(unsigned char red, unsigned char green, unsigned char blue);
 
-extern void simInit();
-extern void simPrepareScreen();
-extern void simSetPixel(int x, int y, int argb);
-extern void simFlush();
-extern int simCheckQuit();
-extern void simClose();
+void simInit();
+void simPrepareScreen();
+void simSetPixel(int x, int y, int argb);
+void simFlush();
+int simCheckQuit();
+void simClose();
