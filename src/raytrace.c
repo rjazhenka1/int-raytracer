@@ -1,6 +1,7 @@
 #include "raytrace.h"
 #include "sim.h"
 
+#define ITER_COUNT 600
 #define FACTOR 2048
 #define abs(x) (((x) >= 0) ? (x) : -(x))
 #define INT_MAX 2147483647
@@ -70,7 +71,7 @@ unsigned int get_color(struct vec3 origin, struct vec3 dir) {
 
 void app() {
   unsigned int iter = 0;
-  while (!simCheckQuit()) {
+  while (!simCheckQuit() && iter < ITER_COUNT) {
     simPrepareScreen();
     for (int x = 0; x < WIDTH; x++) {
       for (int y = 0; y < HEIGHT; y++) {

@@ -27,6 +27,7 @@ void simInit() {
   simPrepareScreen();
   meta.texture = SDL_CreateTexture(meta.renderer, SDL_PIXELFORMAT_ARGB8888,
                                    SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
+  simFlush();
 }
 
 void simPrepareScreen() {
