@@ -23,6 +23,10 @@ llvm-trace:
 	clang src/*.c llvm-pass-src/log.c -O2 -lSDL2 -Xclang -load -Xclang $(BUILDDIR)/libPass.so -flegacy-pass-manager -o $(BUILDDIR)/int-raytracer-pass
 	$(BUILDDIR)/int-raytracer-pass | gzip > $(BUILDDIR)/trace.txt.gz
 
+ir-gen:
+	mkdir -p $(BUILDDIR)
+	clang++ llvm-ir-gen/IRGen.cpp `llvm-config --cxxflags --ldflags --libs` -lSDL2 -o $(BUILDDIR)/ir-gen
+
 clean:
 	rm -rf $(BUILDDIR) $(LLVMDIR)
 
